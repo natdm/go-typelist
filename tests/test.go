@@ -26,13 +26,13 @@ var myFunc = func(s string) {
 
 }
 
-type FuncTyp func(s string)
+type SomeFuncDeclMaybe func(s string)
 
 type ch chan string
 type ch2 chan<- string
 type ch3 <-chan string
 
 // TakesAChan is a bit more complex.
-func TakesAChan(in <-chan string, something bool, done chan struct{}) error {
+func TakesAChannel(in <-chan string, something bool, done chan struct{}) error {
 	return nil
 }
