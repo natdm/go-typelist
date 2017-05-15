@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"golang.org/x/text/unicode/norm"
 )
@@ -22,14 +23,23 @@ type Object struct {
 	Type      string `json:"type"`
 }
 
+// ObjectsVersion has the version of the package as well as the objects
+type ObjectsVersion struct {
+	Version string   `json:"version"`
+	Objects []Object `json:"objects"`
+}
+
+const version = "0.0.1"
+
 func main() {
 	if len(os.Args) < 1 {
 		log.Println("Nothing to do")
 		os.Exit(0)
 	}
+
 	out := []Object{}
 	fset := token.NewFileSet()
-	file, e := parser.ParseFile(fset, os.Args[1], nil, parser.ParseComments)
+	file, e := parser.ParseFile(fset, os.Args[1], nil, parser.AllErrors)
 	if e != nil {
 		log.Fatal(e)
 		return
@@ -39,27 +49,49 @@ func main() {
 		log.Fatal(e)
 	}
 
-	for k, v := range file.Scope.Objects {
-		switch v.Kind {
-		case ast.Typ:
-			log.Printf("%s is an ast type\n", k)
-		case ast.Fun:
-			log.Printf("%s is a func type\n", k)
-		case ast.Var:
-			log.Printf("%s is a var type\n", k)
-		default:
-			log.Printf("%s is not a known type\n", k)
+	for i := range file.Decls {
+		o := inspectNode(file.Decls[i], bs, fset)
+		if o.Type == "MethodDecl" {
+			out = append(out, o)
 		}
+
+	}
+
+	for k, v := range file.Scope.Objects {
+		fld, ok := v.Decl.(*ast.Field)
+		if ok {
+			obj := Object{
+				Name:      k,
+				Signature: string(bs[fld.Pos()-1 : fld.End()]),
+				Line:      fset.File(v.Pos()).Line(v.Pos()),
+			}
+			out = append(out, obj)
+			continue
+		}
+
+		se, ok := v.Decl.(*ast.SelectorExpr)
+		if ok {
+			obj := Object{
+				Name:      k,
+				Signature: string(bs[se.Pos()-1 : se.End()]),
+				Line:      fset.File(v.Pos()).Line(v.Pos()),
+			}
+			out = append(out, obj)
+			continue
+		}
+
 		ts, ok := v.Decl.(*ast.TypeSpec)
 		if ok {
 			obj := Object{
-				Name: k,
-				Line: fset.File(v.Pos()).Line(v.Pos()),
+				Name:      k,
+				Line:      fset.File(v.Pos()).Line(v.Pos()),
+				Signature: string(bs[ts.Pos()-1 : ts.End()]),
+				Type:      "TypeSpec",
 			}
-
-			Type(bs, ts, &obj)
 			out = append(out, obj)
+			continue
 		}
+
 		fd, ok := v.Decl.(*ast.FuncDecl)
 		if ok {
 			out = append(out, Object{
@@ -69,7 +101,9 @@ func main() {
 				Line:      fset.File(v.Pos()).Line(v.Pos()),
 				Comment:   "I am a comment",
 			})
+			continue
 		}
+
 		fl, ok := v.Decl.(*ast.FuncLit)
 		if ok {
 			out = append(out, Object{
@@ -79,7 +113,9 @@ func main() {
 				Line:      fset.File(v.Pos()).Line(v.Pos()),
 				Comment:   "I am a comment",
 			})
+			continue
 		}
+
 		ft, ok := v.Decl.(*ast.FuncType)
 		if ok {
 			out = append(out, Object{
@@ -89,46 +125,42 @@ func main() {
 				Line:      fset.File(v.Pos()).Line(v.Pos()),
 				Comment:   "I am a comment",
 			})
+			continue
 		}
+
 	}
-	outBs, err := json.MarshalIndent(out, "", "\t")
+	objV := ObjectsVersion{Version: version, Objects: out}
+	outBs, err := json.MarshalIndent(objV, "", "\t")
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Fprint(os.Stdout, string(norm.NFC.Bytes(outBs)))
 }
 
-// Type creates a package level type.
-func Type(bs []byte, ts *ast.TypeSpec, obj *Object) error {
-	var comment string
-	if ts.Comment != nil {
-		comment = ts.Comment.Text()
-	}
-	obj.Comment = comment
-
-	switch ts.Type.(type) {
-	case *ast.ChanType:
-		x := ts.Type.(*ast.ChanType)
-		obj.Type = "ChanType"
-		obj.Signature = string(bs[x.Pos()-1 : x.End()])
-	case *ast.InterfaceType:
-		x := ts.Type.(*ast.InterfaceType)
-		obj.Type = "InterfaceType"
-		obj.Signature = string(bs[x.Pos()-1 : x.End()])
-	case *ast.ArrayType:
-		x := ts.Type.(*ast.ArrayType)
-		obj.Type = "ArrayType"
-		obj.Signature = string(bs[x.Pos()-1 : x.End()])
-	case *ast.MapType:
-		x := ts.Type.(*ast.MapType)
-		obj.Type = "MapType"
-		obj.Signature = string(bs[x.Pos()-1 : x.End()])
-	case *ast.StructType:
-		x := ts.Type.(*ast.StructType)
-		obj.Type = "StructType"
-		obj.Signature = string(bs[x.Pos()-1 : x.End()])
-	default:
-		obj.Type = "Unknown"
-	}
-	return nil
+// inspectNode checks what is determined to be the value of a node based on a type-assertion.
+func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
+	obj := Object{}
+	ast.Inspect(node, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.FuncDecl:
+			if x.Recv == nil {
+				return true
+			}
+			body := string(bs[x.Pos()-1 : x.End()])
+			index := strings.Index(body, "{\n\treturn")
+			sig := body[:index-1]
+			obj.Name = x.Name.String()
+			obj.Signature = sig
+			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Type = "MethodDecl"
+		case *ast.ChanType:
+			obj.Name = ""
+			obj.Signature = string(bs[x.Pos()-1 : x.End()])
+			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Type = "ChanType"
+		default:
+		}
+		return true
+	})
+	return obj
 }

@@ -29,10 +29,29 @@ var myFunc = func(s string) {
 type SomeFuncDeclMaybe func(s string)
 
 type ch chan string
+
 type ch2 chan<- string
 type ch3 <-chan string
 
-// TakesAChan is a bit more complex.
+// TakesAChannel is a bit more complex.
 func TakesAChannel(in <-chan string, something bool, done chan struct{}) error {
 	return nil
+}
+
+// MyType has methods
+type MyTypeStr struct {
+}
+
+// String satisfies stringer
+func (t *MyTypeStr) String() string {
+	return "Hello"
+}
+
+// StringNoPtr has no ptr receiver
+func (t MyTypeStr) StringNoPtr() string {
+	return "Hello"
+}
+
+func TestFunc() {
+
 }
