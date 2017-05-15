@@ -20,6 +20,7 @@ type Object struct {
 	Signature string  `json:"signature"`
 	Type      string  `json:"type"`
 	Name      *string `json:"name"`
+	Receiver  *string `json:"receiver"`
 }
 
 // ObjectsVersion has the version of the package as well as the objects
@@ -100,6 +101,8 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			obj.Signature = sig
 			obj.Line = fset.File(x.Pos()).Line(x.Pos())
 			obj.Type = "MethodDecl"
+			rcv := string(bs[x.Recv.Opening-1 : x.Recv.Closing])
+			obj.Receiver = &rcv
 		case *ast.ChanType:
 			obj.Signature = string(bs[node.Pos()-1 : node.End()])
 			obj.Line = fset.File(x.Pos()).Line(x.Pos())

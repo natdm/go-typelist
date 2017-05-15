@@ -69,3 +69,13 @@ type Whatever map[string]string
 // func TestFunc() {
 //
 // }
+
+type TypeWithFuncs struct{}
+
+func (t *TypeWithFuncs) String() string {
+	return ""
+}
+
+func (t TypeWithFuncs) StringNpPtr() string {
+	return ""
+}
