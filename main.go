@@ -61,16 +61,24 @@ func main() {
 	}
 
 	// collect the names of these types for syntax highlighting.
-	for _, v := range file.Scope.Objects {
-		switch v.Decl.(type) {
-		case *ast.Field,
-			*ast.SelectorExpr,
-			*ast.TypeSpec,
-			*ast.FuncDecl,
-			*ast.FuncLit,
-			*ast.FuncType:
-			out[fset.File(v.Pos()).Line(v.Pos())].Name = &v.Name
-		default:
+	for k, v := range file.Scope.Objects {
+		loc := fset.File(v.Pos()).Line(v.Pos())
+		if _, ok := out[loc]; ok {
+			switch out[loc].Type {
+			case "StructType", "FuncType":
+				n := k
+				out[loc].Name = &n
+			}
+		}
+	}
+
+	// add names of methods to Name
+	for k := range out {
+		if out[k].Receiver != nil && out[k].Name == nil {
+			s := strings.TrimPrefix(out[k].Signature, "func "+*out[k].Receiver)
+			paren := strings.Index(s, "(")
+			x := strings.TrimSpace(s[:paren])
+			out[k].Name = &x
 		}
 	}
 
@@ -97,7 +105,12 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			body := string(bs[x.Pos()-1 : x.End()])
 			index := strings.Index(body, "{\n\treturn")
-			sig := body[:index-1]
+			var sig string
+			if index > -1 {
+				sig = body[:index-1]
+			} else {
+				sig = body
+			}
 			obj.Signature = sig
 			obj.Line = fset.File(x.Pos()).Line(x.Pos())
 			obj.Type = "MethodDecl"
@@ -110,16 +123,26 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 		case *ast.DeclStmt:
 			body := string(bs[x.Pos()-1 : x.End()])
 			index := strings.Index(body, "{\n")
-			sig := body[:index-1]
 			z := n.(*ast.DeclStmt)
+			var sig string
+			if index > -1 {
+				sig = body[:index-1]
+			} else {
+				sig = body
+			}
 			obj.Signature = sig
 			obj.Line = fset.File(z.Pos()).Line(z.Pos())
 			obj.Type = "DeclStmt"
 		case *ast.FuncLit:
 			body := string(bs[node.Pos()-1 : node.End()])
 			index := strings.Index(body, "{\n")
-			sig := body[:index-1]
 			z := n.(*ast.FuncLit)
+			var sig string
+			if index > -1 {
+				sig = body[:index-1]
+			} else {
+				sig = body
+			}
 			obj.Signature = sig
 			obj.Line = fset.File(z.Type.Pos()).Line(z.Type.Pos())
 			obj.Type = "FuncLit"
@@ -147,9 +170,12 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			obj.Line = fset.File(x.Pos()).Line(x.Pos())
 			obj.Type = "TypeSpec"
 		case *ast.GenDecl:
+			if strings.Contains(string(bs[node.Pos()-1:node.End()]), "import") {
+				break
+			}
 			obj.Signature = string(bs[node.Pos()-1 : node.End()])
 			obj.Line = fset.File(x.Pos()).Line(x.Pos())
-			obj.Type = "TypeSpec"
+			obj.Type = "GenDecl"
 		default:
 		}
 		return true
