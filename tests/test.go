@@ -11,6 +11,8 @@ type MyStructType struct {
 // 	Write()
 // }
 
+const someConst = "Hello"
+
 const (
 	const1 = iota + 1
 	const2
