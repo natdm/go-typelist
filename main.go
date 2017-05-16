@@ -182,6 +182,14 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = sig
 			obj.Type = "GenDecl"
+
+			// If it's a variable, parse the name
+			v := strings.TrimPrefix(sig, "var ")
+			idx := strings.Index(v, "=")
+			if idx > -1 {
+				name := v[:idx-1]
+				obj.Name = &name
+			}
 		default:
 		}
 		return true
