@@ -1,0 +1,425 @@
+{
+	"version": "0.0.1",
+	"objects": [
+		{
+			"line": 133,
+			"signature": "func (d *DB) Add(i interface{}) error",
+			"type": "MethodDecl",
+			"name": "Add",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 226,
+			"signature": "func (d *DB) TransactionItemsForAdmin(id int) ([]TransactionItem, error)",
+			"type": "MethodDecl",
+			"name": "TransactionItemsForAdmin",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 567,
+			"signature": "func (d *DB) AddAdmin(a *Admin) error",
+			"type": "MethodDecl",
+			"name": "AddAdmin",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 584,
+			"signature": "func (d *DB) ItemArchiveByID(id int) error",
+			"type": "MethodDecl",
+			"name": "ItemArchiveByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 79,
+			"signature": "var tables = []interface{",
+			"type": "GenDecl",
+			"name": "tables",
+			"receiver": null
+		},
+		{
+			"line": 393,
+			"signature": "func (d *DB) BidderByEmail(email string) (*Bidder, error)",
+			"type": "MethodDecl",
+			"name": "BidderByEmail",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 595,
+			"signature": "func (d *DB) ItemPurchase(id int) error",
+			"type": "MethodDecl",
+			"name": "ItemPurchase",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 13,
+			"signature": "type DBAdminer interface",
+			"type": "GenDecl",
+			"name": " DBAdminer ",
+			"receiver": null
+		},
+		{
+			"line": 284,
+			"signature": "func (d *DB) AdminEventLevel(adminID, eventID int) (*EventAccess, error)",
+			"type": "MethodDecl",
+			"name": "AdminEventLevel",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 526,
+			"signature": "func (d *DB) BidderUpdateEmail(id int, email string) error",
+			"type": "MethodDecl",
+			"name": "BidderUpdateEmail",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 575,
+			"signature": "func (d *DB) AllAdmins() ([]Admin, error)",
+			"type": "MethodDecl",
+			"name": "AllAdmins",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 717,
+			"signature": "func (d *DB) NotificationsByEventKeyAndBidderID(k string, bidderID int) ([]Notification, error)",
+			"type": "MethodDecl",
+			"name": "NotificationsByEventKeyAndBidderID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 167,
+			"signature": "func (d *DB) LocationByID(id int64) (*Location, error)",
+			"type": "MethodDecl",
+			"name": "LocationByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 480,
+			"signature": "func (d *DB) BidByItemID(id int) (*Bid, error)",
+			"type": "MethodDecl",
+			"name": "BidByItemID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 515,
+			"signature": "func (d *DB) BidderNotCCWarned(id int) error",
+			"type": "MethodDecl",
+			"name": "BidderNotCCWarned",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 655,
+			"signature": "func (d *DB) TransactionItemsByID(id int) ([]Transaction, error)",
+			"type": "MethodDecl",
+			"name": "TransactionItemsByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 709,
+			"signature": "func (d *DB) RemoveWatcher(w *Watch) error",
+			"type": "MethodDecl",
+			"name": "RemoveWatcher",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 729,
+			"signature": "func (d *DB) SetNotificationAsRead(id int) error",
+			"type": "MethodDecl",
+			"name": "SetNotificationAsRead",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 357,
+			"signature": "func (d *DB) EventItemsImages(id int) ([]ItemImage, error)",
+			"type": "MethodDecl",
+			"name": "EventItemsImages",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 492,
+			"signature": "func (d *DB) BidsByBidder(id int) ([]Bid, error)",
+			"type": "MethodDecl",
+			"name": "BidsByBidder",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 669,
+			"signature": "func (d *DB) BillingByBidderID(id int) (*Bidder, error)",
+			"type": "MethodDecl",
+			"name": "BillingByBidderID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 681,
+			"signature": "func (d *DB) BidderBillingByBidderID(id int) (*BidderBillingAccount, error)",
+			"type": "MethodDecl",
+			"name": "BidderBillingByBidderID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 145,
+			"signature": "func (d *DB) Delete(i interface{}) error",
+			"type": "MethodDecl",
+			"name": "Delete",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 468,
+			"signature": "func (d *DB) KeyByEventID(id int) (string, error)",
+			"type": "MethodDecl",
+			"name": "KeyByEventID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 618,
+			"signature": "func (d *DB) ItemsByEventID(id int) ([]Item, error)",
+			"type": "MethodDecl",
+			"name": "ItemsByEventID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 630,
+			"signature": "func (d *DB) ItemWinner(id int) (*ItemWinner, error)",
+			"type": "MethodDecl",
+			"name": "ItemWinner",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 643,
+			"signature": "func (d *DB) TransactionsByBidderID(id int) ([]Transaction, error)",
+			"type": "MethodDecl",
+			"name": "TransactionsByBidderID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 405,
+			"signature": "func (d *DB) ContactByID(id int) (*Contact, error)",
+			"type": "MethodDecl",
+			"name": "ContactByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 252,
+			"signature": "func (d *DB) ActiveTransactions() []Transaction",
+			"type": "MethodDecl",
+			"name": "ActiveTransactions",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 419,
+			"signature": "func (d *DB) EventByKey(key string) (*Event, error)",
+			"type": "MethodDecl",
+			"name": "EventByKey",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 444,
+			"signature": "func (d *DB) EventTimesByID(id int) (*Event, error)",
+			"type": "MethodDecl",
+			"name": "EventTimesByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 179,
+			"signature": "func (d *DB) TransactionByID(id int64) (*Transaction, error)",
+			"type": "MethodDecl",
+			"name": "TransactionByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 67,
+			"signature": "func (d *DB) connect() error",
+			"type": "MethodDecl",
+			"name": "connect",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 96,
+			"signature": "func (d *DB) Migrate() error",
+			"type": "MethodDecl",
+			"name": "Migrate",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 156,
+			"signature": "func (d *DB) Save(i interface{}) error",
+			"type": "MethodDecl",
+			"name": "Save",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 203,
+			"signature": "func (d *DB) TransactionsForAdmin(id int) ([]Transaction, error)",
+			"type": "MethodDecl",
+			"name": "TransactionsForAdmin",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 270,
+			"signature": "func (d *DB) EventsForAdmin(id int) ([]Event, error)",
+			"type": "MethodDecl",
+			"name": "EventsForAdmin",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 552,
+			"signature": "func (d *DB) AdminByAuthID(authID string) (*Admin, error)",
+			"type": "MethodDecl",
+			"name": "AdminByAuthID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 41,
+			"signature": "type DBBidder interface",
+			"type": "GenDecl",
+			"name": " DBBidder ",
+			"receiver": null
+		},
+		{
+			"line": 504,
+			"signature": "func (d *DB) BidderCCWarned(id int) error",
+			"type": "MethodDecl",
+			"name": "BidderCCWarned",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 259,
+			"signature": "func (d *DB) EventArchiveByID(id int) error",
+			"type": "MethodDecl",
+			"name": "EventArchiveByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 606,
+			"signature": "func (d *DB) ItemIsPurchased(id int) (bool, error)",
+			"type": "MethodDecl",
+			"name": "ItemIsPurchased",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 741,
+			"signature": "func (d *DB) EventKeyExists(k string) (bool, error)",
+			"type": "MethodDecl",
+			"name": "EventKeyExists",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 88,
+			"signature": "func (d *DB) createTable(i interface{}) error",
+			"type": "MethodDecl",
+			"name": "createTable",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 345,
+			"signature": "func (d *DB) EventsLocations(ids []int) ([]Location, error)",
+			"type": "MethodDecl",
+			"name": "EventsLocations",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 324,
+			"signature": "func (d *DB) EventAccesses(eventID int) ([]EventAccess, error)",
+			"type": "MethodDecl",
+			"name": "EventAccesses",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 115,
+			"signature": "func (d *DB) LoadDefaultData() error",
+			"type": "MethodDecl",
+			"name": "LoadDefaultData",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 296,
+			"signature": "func (d *DB) AdminEventsAccess(id int) ([]EventAccessDetails, error)",
+			"type": "MethodDecl",
+			"name": "AdminEventsAccess",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 662,
+			"signature": "func (d *DB) TransactionItemsByBidderID(id int) ([]Item, error)",
+			"type": "MethodDecl",
+			"name": "TransactionItemsByBidderID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 693,
+			"signature": "func (d *DB) ConfigurationLoad(conf *Configuration) error",
+			"type": "MethodDecl",
+			"name": "ConfigurationLoad",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 29,
+			"signature": "type DBEventer interface",
+			"type": "GenDecl",
+			"name": " DBEventer ",
+			"receiver": null
+		},
+		{
+			"line": 701,
+			"signature": "func (d *DB) AddWatcher(w *Watch) error",
+			"type": "MethodDecl",
+			"name": "AddWatcher",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 128,
+			"signature": "func (d *DB) LoadQAData() error",
+			"type": "MethodDecl",
+			"name": "LoadQAData",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 333,
+			"signature": "func (d *DB) EventsContacts(ids []int) ([]Contact, error)",
+			"type": "MethodDecl",
+			"name": "EventsContacts",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 381,
+			"signature": "func (d *DB) BidderByAuthID(authID string) (*Bidder, error)",
+			"type": "MethodDecl",
+			"name": "BidderByAuthID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 537,
+			"signature": "func (d *DB) AdminByID(id int) (*Admin, error)",
+			"type": "MethodDecl",
+			"name": "AdminByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 191,
+			"signature": "func (d *DB) ItemsByTransactionID(id int64) ([]TransactionItem, error)",
+			"type": "MethodDecl",
+			"name": "ItemsByTransactionID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 432,
+			"signature": "func (d *DB) EventByID(id int) (*Event, error)",
+			"type": "MethodDecl",
+			"name": "EventByID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 456,
+			"signature": "func (d *DB) EventsByUserID(id int) ([]Event, error)",
+			"type": "MethodDecl",
+			"name": "EventsByUserID",
+			"receiver": "(d *DB)"
+		},
+		{
+			"line": 46,
+			"signature": "type DB struct",
+			"type": "GenDecl",
+			"name": " DB ",
+			"receiver": null
+		}
+	]
+}

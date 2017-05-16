@@ -110,17 +110,17 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 		switch x := n.(type) {
 		case *ast.FuncDecl:
 			if x.Recv == nil {
-				return true
+				return false
 			}
 			body := getbody(bs, node)
-			index := strings.Index(body, "{\n\treturn")
+			index := strings.Index(body, "{\n")
 			var sig string
 			if index > -1 {
 				sig = body[:index-1]
 			} else {
 				sig = body
 			}
-			obj.Signature = strings.TrimSuffix(sig, "\n")
+			obj.Signature = sig
 			obj.Type = "MethodDecl"
 			rcv := string(bs[x.Recv.Opening-1 : x.Recv.Closing])
 			obj.Receiver = &rcv
@@ -184,15 +184,25 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			obj.Type = "GenDecl"
 
 			// If it's a variable, parse the name
-			v := strings.TrimPrefix(sig, "var ")
-			idx := strings.Index(v, "=")
-			if idx > -1 {
-				name := v[:idx-1]
-				obj.Name = &name
+			if strings.Index(sig, "var") > -1 {
+				v := strings.TrimPrefix(sig, "var ")
+				idx := strings.Index(v, "=")
+				if idx > -1 {
+					name := v[:idx-1]
+					obj.Name = &name
+				}
+				break
 			}
+
+			// else if it's an interface or struct
+			trimmed := strings.TrimPrefix(sig, "type")
+			trimmed = strings.TrimSuffix(trimmed, "interface")
+			trimmed = strings.TrimSuffix(trimmed, "struct")
+			trimmed = strings.TrimSpace(trimmed)
+			obj.Name = &trimmed
 		default:
 		}
-		return true
+		return false
 	})
 	return obj
 }
