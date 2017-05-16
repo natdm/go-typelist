@@ -1,86 +1,54 @@
 package test
 
-type MyStructType struct {
-	data  string
-	data2 int
-}
+// BasicType should be a GenDecl
+type BasicType string
 
-//
-// type MyInterfaceType interface {
-// 	Read()
-// 	Write()
-// }
+//ArrayType should be a GenDecl
+type ArrayType [2]string
 
-const someConst = "Hello"
+// SliceType should be a GenDecl
+type SliceType []string
 
-const (
-	const1 = iota + 1
-	const2
-)
+// FuncType should be a GenDecl
+type FuncType func(foo int, bar string) error
 
-type thing []string
-type fixedArr [2]string
+// InterfaceType should be a GenDecl
+type InterfaceType interface{}
 
-func HELLOFROMAFUNC(s string) {
+// StructType should be a GenDecl
+type StructType struct{}
 
-}
+var Variable = "TestVar"
 
-//
-// // SomeAwesomefunc is awesome
-// func SomeAwesomefunc(s string, y *string) (string, error) {
-// 	return "", nil
-// }
+// ConstType is currently a should be a GenDecl but should be saved
+// as something else since it's a differnet type in syntax (name is red)
+const ConstType = 1
 
-var myFunc = func(s string) {
-
-}
-
-//
-type SomeFuncDeclMaybe func(s string)
-
-//
-type ch chan string
-
-//
-type ch2 chan<- string
-
-type ch3 <-chan string
-
-type Whatever map[string]string
-
-//
-// // TakesAChannel is a bit more complex.
-// func TakesAChannel(in <-chan string, something bool, done chan struct{}) error {
-// 	return nil
-// }
-//
-// // MyType has methods
-// type MyTypeStr struct {
-// }
-//
-// // String satisfies stringer
-// func (t *MyTypeStr) String() string {
-// 	return "Hello"
-// }
-//
-// // StringNoPtr has no ptr receiver
-// func (t MyTypeStr) StringNoPtr() string {
-// 	return "Hello"
-// }
-//
-// func TestFunc() {
-//
-// }
-
-type TypeWithFuncs struct{}
-
-func (t *TypeWithFuncs) String() string {
-	return ""
-}
-
-func (t TypeWithFuncs) StringNpPtr() string {
-	return ""
-}
-func (t *TypeWithFuncs) SomeMethod(i interface{}) error {
+// Standalonefunc is not being parsed.. odd.
+func Standalonefunc(foo int, bar string) error {
 	return nil
+}
+
+// MethodDeclPR should show up as a MethodDecl
+func (s *StructType) MethodDeclPR(foo int, bar string) error {
+	return nil
+}
+
+// MethodDecl should show up as a MethodDecl
+func (s StructType) MethodDecl(foo int, bar string) error {
+	return nil
+}
+
+// init is not being parsed..
+func init() {
+	// init func
+}
+
+// init is not being parsed..
+func init() {
+	// main func
+}
+
+func somefunc() {
+
 }

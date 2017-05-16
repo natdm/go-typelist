@@ -54,6 +54,7 @@ func main() {
 		o := inspectNode(file.Decls[i], bs, fset)
 		switch o.Type {
 		case "":
+			log.Println("Shits got no type")
 			continue
 		default:
 			out[o.Line] = &o
@@ -109,9 +110,6 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 		obj.Line = fset.File(node.Pos()).Line(node.Pos())
 		switch x := n.(type) {
 		case *ast.FuncDecl:
-			if x.Recv == nil {
-				return false
-			}
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -121,9 +119,21 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 				sig = body
 			}
 			obj.Signature = sig
-			obj.Type = "MethodDecl"
-			rcv := string(bs[x.Recv.Opening-1 : x.Recv.Closing])
-			obj.Receiver = &rcv
+			if x.Recv == nil {
+				obj.Type = "FuncDecl"
+				name := strings.TrimPrefix(sig, "func")
+				index = strings.Index(name, "(")
+				name = strings.TrimSpace(name[:index])
+				obj.Name = &name
+			} else {
+				obj.Type = "MethodDecl"
+				rcv := string(bs[x.Recv.Opening-1 : x.Recv.Closing])
+				obj.Receiver = &rcv
+				name := strings.TrimPrefix(sig, "func"+" "+rcv)
+				index = strings.Index(name, "(")
+				name = strings.TrimSpace(name[:index])
+				obj.Name = &name
+			}
 		case *ast.ChanType:
 			obj.Signature = getSignature(bs, node)
 			obj.Type = "ChanType"
@@ -173,34 +183,38 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 				break
 			}
 			body := getbody(bs, node)
-			index := strings.Index(body, "{\n")
+			idx := strings.Index(body, "{\n")
+			if idx == -1 {
+				// special case for inline structs
+				idx = strings.Index(body, "{")
+			}
 			var sig string
-			if index > -1 {
-				sig = body[:index-1]
+			if idx > -1 {
+				sig = body[:idx]
 			} else {
 				sig = body
 			}
 			obj.Signature = sig
 			obj.Type = "GenDecl"
 
-			// If it's a variable, parse the name
-			if strings.Index(sig, "var") > -1 {
-				v := strings.TrimPrefix(sig, "var ")
-				idx := strings.Index(v, "=")
-				if idx > -1 {
-					name := v[:idx-1]
-					obj.Name = &name
+			idx = strings.Index(sig, " ")
+			log.Println(idx)
+			pfx := sig[:idx]
+			log.Println(pfx)
+			switch pfx {
+			case "type", "var", "const":
+				start := strings.TrimSpace(sig[idx:])
+				log.Printf("%s start\n", start)
+				endIdx := strings.Index(start, " ")
+				if endIdx == -1 { // no idea how
+					log.Printf("%s has no ending space\n", start)
+					return false
 				}
-				break
+				name := start[:endIdx]
+				obj.Name = &name
 			}
-
-			// else if it's an interface or struct
-			trimmed := strings.TrimPrefix(sig, "type")
-			trimmed = strings.TrimSuffix(trimmed, "interface")
-			trimmed = strings.TrimSuffix(trimmed, "struct")
-			trimmed = strings.TrimSpace(trimmed)
-			obj.Name = &trimmed
 		default:
+			// log.Println(string(bs[x.Pos()-1 : x.End()]))
 		}
 		return false
 	})
