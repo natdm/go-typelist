@@ -94,6 +94,14 @@ func main() {
 	fmt.Fprint(os.Stdout, string(norm.NFC.Bytes(outBs)))
 }
 
+func getbody(bs []byte, node ast.Node) string {
+	return string(bs[node.Pos()-1 : node.End()])
+}
+
+func getSignature(bs []byte, node ast.Node) string {
+	return strings.TrimSuffix(getbody(bs, node), "\n")
+}
+
 // inspectNode checks what is determined to be the value of a node based on a type-assertion.
 func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 	obj := Object{}
@@ -103,7 +111,7 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			if x.Recv == nil {
 				return true
 			}
-			body := string(bs[x.Pos()-1 : x.End()])
+			body := getbody(bs, node)
 			index := strings.Index(body, "{\n\treturn")
 			var sig string
 			if index > -1 {
@@ -111,17 +119,17 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			} else {
 				sig = body
 			}
-			obj.Signature = sig
-			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Signature = strings.TrimSuffix(sig, "\n")
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "MethodDecl"
 			rcv := string(bs[x.Recv.Opening-1 : x.Recv.Closing])
 			obj.Receiver = &rcv
 		case *ast.ChanType:
-			obj.Signature = string(bs[node.Pos()-1 : node.End()])
-			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Signature = getSignature(bs, node)
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "ChanType"
 		case *ast.DeclStmt:
-			body := string(bs[x.Pos()-1 : x.End()])
+			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			z := n.(*ast.DeclStmt)
 			var sig string
@@ -130,51 +138,49 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			} else {
 				sig = body
 			}
-			obj.Signature = sig
+			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Line = fset.File(z.Pos()).Line(z.Pos())
 			obj.Type = "DeclStmt"
 		case *ast.FuncLit:
-			body := string(bs[node.Pos()-1 : node.End()])
+			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
-			z := n.(*ast.FuncLit)
 			var sig string
 			if index > -1 {
 				sig = body[:index-1]
 			} else {
 				sig = body
 			}
-			obj.Signature = sig
-			obj.Line = fset.File(z.Type.Pos()).Line(z.Type.Pos())
+			obj.Signature = strings.TrimSuffix(sig, "\n")
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "FuncLit"
 		case *ast.FuncType:
-			body := string(bs[node.Pos()-1 : node.End()])
-			index := strings.Index(body, "{")
+			body := getbody(bs, node)
+			index := strings.Index(body, "{\n")
 			var sig string
 			if index > -1 {
 				sig = body[:index-1]
 			} else {
 				sig = body
 			}
-			obj.Signature = sig
-			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Signature = strings.TrimSuffix(sig, "\n")
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "FuncType"
 		case *ast.StructType:
-			body := string(bs[node.Pos()-1 : node.End()])
+			body := getbody(bs, node)
 			index := strings.Index(body, "struct")
-			sig := body[:index+6]
-			obj.Signature = sig
-			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Signature = strings.TrimSuffix(body[:index+6], "\n")
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "StructType"
 		case *ast.TypeSpec:
-			obj.Signature = string(bs[node.Pos()-1 : node.End()])
-			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Signature = getSignature(bs, node)
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "TypeSpec"
 		case *ast.GenDecl:
 			if strings.Contains(string(bs[node.Pos()-1:node.End()]), "import") {
 				break
 			}
-			obj.Signature = string(bs[node.Pos()-1 : node.End()])
-			obj.Line = fset.File(x.Pos()).Line(x.Pos())
+			obj.Signature = getSignature(bs, node)
+			obj.Line = fset.File(node.Pos()).Line(node.Pos())
 			obj.Type = "GenDecl"
 		default:
 		}

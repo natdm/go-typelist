@@ -79,3 +79,6 @@ func (t *TypeWithFuncs) String() string {
 func (t TypeWithFuncs) StringNpPtr() string {
 	return ""
 }
+func (t *TypeWithFuncs) SomeMethod(i interface{}) error {
+	return nil
+}
