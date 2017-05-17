@@ -16,11 +16,24 @@ import (
 
 // Object represents a Go type
 type Object struct {
-	Line      int     `json:"line"`
-	Signature string  `json:"signature"`
-	Type      string  `json:"type"`
-	Name      *string `json:"name"`
-	Receiver  *string `json:"receiver"`
+	Line      int       `json:"line"`
+	Signature string    `json:"signature"`
+	Type      string    `json:"type"`
+	Name      *string   `json:"name"`
+	Receiver  *Receiver `json:"receiver"`
+}
+
+type Receiver struct {
+	TypeName string `json:"type_name"`
+	Pointer  bool   `json:"pointer"`
+	Alias    string `json:"alias"`
+}
+
+func (r *Receiver) String() string {
+	if r.Pointer {
+		return fmt.Sprintf("(%s *%s)", r.Alias, r.TypeName)
+	}
+	return fmt.Sprintf("(%s %s)", r.Alias, r.TypeName)
 }
 
 // ObjectsVersion has the version of the package as well as the objects
@@ -76,7 +89,7 @@ func main() {
 	// add names of methods to Name
 	for k := range out {
 		if out[k].Receiver != nil && out[k].Name == nil {
-			s := strings.TrimPrefix(out[k].Signature, "func "+*out[k].Receiver)
+			s := strings.TrimPrefix(out[k].Signature, "func "+out[k].Receiver.String())
 			paren := strings.Index(s, "(")
 			x := strings.TrimSpace(s[:paren])
 			out[k].Name = &x
@@ -103,6 +116,25 @@ func getSignature(bs []byte, node ast.Node) string {
 	return strings.TrimSuffix(getbody(bs, node), "\n")
 }
 
+func parseReceiver(r string) *Receiver {
+	ptr := strings.Index(r, "*")
+	a := strings.TrimPrefix(r, "(")
+	aSep := strings.Index(a, " ")
+	ptrB := false
+	var typName string
+	if ptr == -1 { // not a pointer
+		typName = strings.TrimSuffix(a[aSep+1:], ")")
+	} else {
+		typName = strings.TrimSuffix(a[aSep+2:], ")")
+		ptrB = true
+	}
+	return &Receiver{
+		Pointer:  ptrB,
+		TypeName: typName,
+		Alias:    a[:aSep],
+	}
+}
+
 // inspectNode checks what is determined to be the value of a node based on a type-assertion.
 func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 	obj := Object{}
@@ -113,6 +145,7 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
+			var name string
 			if index > -1 {
 				sig = body[:index-1]
 			} else {
@@ -121,19 +154,16 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			obj.Signature = sig
 			if x.Recv == nil {
 				obj.Type = "FuncDecl"
-				name := strings.TrimPrefix(sig, "func")
-				index = strings.Index(name, "(")
-				name = strings.TrimSpace(name[:index])
-				obj.Name = &name
+				name = strings.TrimPrefix(sig, "func")
 			} else {
 				obj.Type = "MethodDecl"
 				rcv := string(bs[x.Recv.Opening-1 : x.Recv.Closing])
-				obj.Receiver = &rcv
-				name := strings.TrimPrefix(sig, "func"+" "+rcv)
-				index = strings.Index(name, "(")
-				name = strings.TrimSpace(name[:index])
-				obj.Name = &name
+				obj.Receiver = parseReceiver(rcv)
+				name = strings.TrimPrefix(sig, "func"+" "+rcv)
 			}
+			index = strings.Index(name, "(")
+			name = strings.TrimSpace(name[:index])
+			obj.Name = &name
 		case *ast.ChanType:
 			obj.Signature = getSignature(bs, node)
 			obj.Type = "ChanType"
