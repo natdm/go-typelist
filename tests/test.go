@@ -66,4 +66,11 @@ var (
 const (
 	g = iota + 1
 	o
+	p
+	h
+	e
+	r
+
+	v = 5
+	f = "asdf"
 )

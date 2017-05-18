@@ -225,7 +225,6 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 			obj.Type = "TypeSpec"
 			out = append(out, obj)
 		case *ast.GenDecl:
-			var obj Object
 			if strings.Contains(string(bs[node.Pos()-1:node.End()]), "import") {
 				break
 			}
@@ -247,13 +246,6 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 			} else {
 				sig = body
 			}
-			if strings.HasSuffix(sig[:len(sig)-2], "(\\n\\t") {
-				log.Println("GROUPED!")
-			}
-
-			fmt.Println(sig)
-			obj.Signature = strings.TrimSpace(sig)
-			obj.Type = "GenDecl"
 
 			idx = strings.Index(sig, " ")
 			pfx := sig[:idx]
@@ -261,26 +253,44 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 			case "type", "var", "const":
 				start := strings.TrimSpace(sig[idx:])
 				endIdx := strings.Index(start, " ")
-				if endIdx == -1 { // no idea how
+				if endIdx == -1 {
 					// happens when grouped
-					// log.Printf("%s has no ending space\n", start)
-					// name := strings.TrimPrefix(start, `const (\n\t`)
-					// out = append(out, Object{
-					// 	Name:      &name,
-					// 	Type:      "GenDecl",
-					// 	Signature: "bla",
-					// 	Line:      line,
-					// })
-					break
+					base := string(bs[x.Pos()-1 : x.End()])
+					split := strings.Split(base, "\n")
+					for i, v := range split {
+						if i == 0 || i > len(split)-3 {
+							// skip the first 'const (' line followed by the )
+							continue
+						}
+						if v == "" {
+							// skip any gaps
+							continue
+						}
+						newObj := Object{}
+						_name := strings.TrimSpace(v)
+						if eqidx := strings.Index(_name, "="); eqidx > -1 {
+							_name = strings.TrimSpace(_name[:eqidx])
+						}
+						newObj.Signature = fmt.Sprintf("%s %s", pfx, _name)
+						newObj.Name = &_name
+						newObj.Line = line + i
+						newObj.Type = "GenDecl"
+						log.Printf("%+v\n", newObj)
+						out = append(out, newObj)
+					}
+					return true
 				}
+				var obj Object
+				obj.Signature = strings.TrimSpace(sig)
+				obj.Type = "GenDecl"
 				name := strings.TrimSpace(start[:endIdx])
 				obj.Name = &name
 				obj.Line = line
+				out = append(out, obj)
 
 			}
-			out = append(out, obj)
 		default:
-			log.Println(string(bs[x.Pos()-1 : x.End()]))
+			// log.Println(string(bs[x.Pos()-1 : x.End()]))
 		}
 		return false
 	})
