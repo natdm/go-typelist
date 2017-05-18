@@ -271,7 +271,13 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 					if i == 0 || v == "" || v == "(" || v == ")" {
 						continue
 					}
+					if strings.TrimSpace(strings.Split(v, " ")[0]) == "//" {
+						continue
+					}
 					name := strings.TrimSpace(strings.Split(v, "=")[0])
+					if strings.HasPrefix(name, "//") {
+						continue
+					}
 					out = append(out, Object{
 						Line:      line + i,
 						Name:      &name,
