@@ -23,6 +23,7 @@ type Object struct {
 	Receiver  *Receiver `json:"receiver"`
 }
 
+// Receiver is a pointer receiver
 type Receiver struct {
 	TypeName string `json:"type_name"`
 	Pointer  bool   `json:"pointer"`
@@ -264,8 +265,6 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 				// is a "const ()" entry
 				// find if var, or const, or type
 				declType := strings.Split(body, " ")[0]
-
-				_ = declType // erase soon
 				split := strings.Split(body, "\n")
 				for i, v := range split {
 					if i == 0 || v == "" || v == "(" || v == ")" {
