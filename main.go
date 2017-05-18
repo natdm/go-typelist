@@ -64,13 +64,14 @@ func main() {
 
 	// get all signatures, types, and lines and add them to the map
 	for i := range file.Decls {
-		for _, o := range inspectNode(file.Decls[i], bs, fset) {
-			switch o.Type {
+		objs := inspectNode(file.Decls[i], bs, fset)
+		for i := range objs {
+			switch objs[i].Type {
 			case "":
 				log.Println("no type")
 				continue
 			default:
-				out[o.Line] = &o
+				out[objs[i].Line] = &objs[i]
 			}
 		}
 	}
@@ -165,8 +166,10 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 				name = strings.TrimPrefix(sig, "func"+" "+rcv)
 			}
 			index = strings.Index(name, "(")
+			// further trim name down
 			name = strings.TrimSpace(name[:index])
 			obj.Name = &name
+			obj.Line = line
 			out = append(out, obj)
 		case *ast.ChanType:
 			var obj Object
@@ -275,7 +278,6 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 						newObj.Name = &_name
 						newObj.Line = line + i
 						newObj.Type = "GenDecl"
-						log.Printf("%+v\n", newObj)
 						out = append(out, newObj)
 					}
 					return true
@@ -287,7 +289,6 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 				obj.Name = &name
 				obj.Line = line
 				out = append(out, obj)
-
 			}
 		default:
 			// log.Println(string(bs[x.Pos()-1 : x.End()]))
