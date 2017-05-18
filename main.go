@@ -64,13 +64,15 @@ func main() {
 
 	// get all signatures, types, and lines and add them to the map
 	for i := range file.Decls {
-		o := inspectNode(file.Decls[i], bs, fset)
-		switch o.Type {
-		case "":
-			log.Println("Shits got no type")
-			continue
-		default:
-			out[o.Line] = &o
+		objs := inspectNode(file.Decls[i], bs, fset)
+		for i := range objs {
+			switch objs[i].Type {
+			case "":
+				log.Println("no type")
+				continue
+			default:
+				out[objs[i].Line] = &objs[i]
+			}
 		}
 	}
 
@@ -136,16 +138,18 @@ func parseReceiver(r string) *Receiver {
 }
 
 // inspectNode checks what is determined to be the value of a node based on a type-assertion.
-func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
-	obj := Object{}
+// returns multiple in the case of grouped types (const, var, type, etc)
+func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
+	out := []Object{}
 	ast.Inspect(node, func(n ast.Node) bool {
-		obj.Line = fset.File(node.Pos()).Line(node.Pos())
+		line := fset.File(node.Pos()).Line(node.Pos())
 		switch x := n.(type) {
 		case *ast.FuncDecl:
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
 			var name string
+			var obj Object
 			if index > -1 {
 				sig = body[:index-1]
 			} else {
@@ -162,12 +166,18 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 				name = strings.TrimPrefix(sig, "func"+" "+rcv)
 			}
 			index = strings.Index(name, "(")
+			// further trim name down
 			name = strings.TrimSpace(name[:index])
 			obj.Name = &name
+			obj.Line = line
+			out = append(out, obj)
 		case *ast.ChanType:
+			var obj Object
 			obj.Signature = getSignature(bs, node)
 			obj.Type = "ChanType"
+			out = append(out, obj)
 		case *ast.DeclStmt:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -178,7 +188,9 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Type = "DeclStmt"
+			out = append(out, obj)
 		case *ast.FuncLit:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -189,7 +201,9 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Type = "FuncLit"
+			out = append(out, obj)
 		case *ast.FuncType:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -200,53 +214,83 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Type = "FuncType"
+			out = append(out, obj)
 		case *ast.StructType:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "struct")
 			obj.Signature = strings.TrimSuffix(body[:index+6], "\n")
 			obj.Type = "StructType"
+			out = append(out, obj)
 		case *ast.TypeSpec:
-			obj.Signature = getSignature(bs, node)
+			var obj Object
+			obj.Signature = strings.TrimSpace(getSignature(bs, node))
 			obj.Type = "TypeSpec"
+			out = append(out, obj)
 		case *ast.GenDecl:
 			if strings.Contains(string(bs[node.Pos()-1:node.End()]), "import") {
 				break
 			}
-			body := getbody(bs, node)
-			idx := strings.Index(body, "{\n")
-			if idx == -1 {
-				// special case for inline structs
-				idx = strings.Index(body, "{")
-			}
-			var sig string
-			if idx > -1 {
-				sig = body[:idx]
-			} else {
-				sig = body
-			}
-			obj.Signature = sig
-			obj.Type = "GenDecl"
 
-			idx = strings.Index(sig, " ")
-			log.Println(idx)
-			pfx := sig[:idx]
-			log.Println(pfx)
-			switch pfx {
-			case "type", "var", "const":
-				start := strings.TrimSpace(sig[idx:])
-				log.Printf("%s start\n", start)
-				endIdx := strings.Index(start, " ")
-				if endIdx == -1 { // no idea how
-					log.Printf("%s has no ending space\n", start)
-					return false
+			body := getbody(bs, node)
+
+			brIdx := strings.Index(body, "\n")
+			eqIdx := strings.Index(body, "=")
+			if eqIdx == -1 {
+				// is a type alias
+				spaceSplit := strings.Split(body, " ")
+
+				// signature =
+				out = append(out, Object{
+					Name:      &spaceSplit[1],
+					Type:      "GenDecl",
+					Line:      line,
+					Signature: fmt.Sprintf("%s %s", spaceSplit[0], spaceSplit[1]),
+				})
+				return false
+			} else if brIdx > eqIdx {
+				// is a var x = __
+				spaceSplit := strings.Split(body[:eqIdx], " ")
+
+				// signature =
+				out = append(out, Object{
+					Name:      &spaceSplit[1],
+					Type:      "GenDecl",
+					Line:      line,
+					Signature: fmt.Sprintf("%s %s", spaceSplit[0], spaceSplit[1]),
+				})
+				return false
+			} else {
+				// is a "const ()" entry
+				// find if var, or const, or type
+				declType := strings.Split(body, " ")[0]
+
+				_ = declType // erase soon
+				split := strings.Split(body, "\n")
+				for i, v := range split {
+					if i == 0 || v == "" || v == "(" || v == ")" {
+						continue
+					}
+					if strings.TrimSpace(strings.Split(v, " ")[0]) == "//" {
+						continue
+					}
+					name := strings.TrimSpace(strings.Split(v, "=")[0])
+					if strings.HasPrefix(name, "//") {
+						continue
+					}
+					out = append(out, Object{
+						Line:      line + i,
+						Name:      &name,
+						Type:      "GenDecl",
+						Signature: fmt.Sprintf("%s %s", declType, name),
+					})
 				}
-				name := start[:endIdx]
-				obj.Name = &name
+				return false
 			}
 		default:
 			// log.Println(string(bs[x.Pos()-1 : x.End()]))
 		}
 		return false
 	})
-	return obj
+	return out
 }

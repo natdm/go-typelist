@@ -44,11 +44,39 @@ func init() {
 	// init func
 }
 
-// init is not being parsed..
-func init() {
-	// main func
-}
-
 func somefunc() {
 
+}
+
+const (
+	x = 1
+	y = 2
+)
+
+var (
+	a = "a var"
+	b = "b var"
+)
+
+const (
+	g = iota + 1
+	o
+	p
+	h
+	e
+	r
+
+	v = 5
+	f = "asdf"
+)
+
+var things = []interface{}{
+	"asdf",
+	false,
+	"asfdadsf",
+	1123,
+}
+
+var aFunction = func(x string) error {
+	return nil
 }
