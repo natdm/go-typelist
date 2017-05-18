@@ -64,13 +64,14 @@ func main() {
 
 	// get all signatures, types, and lines and add them to the map
 	for i := range file.Decls {
-		o := inspectNode(file.Decls[i], bs, fset)
-		switch o.Type {
-		case "":
-			log.Println("Shits got no type")
-			continue
-		default:
-			out[o.Line] = &o
+		for _, o := range inspectNode(file.Decls[i], bs, fset) {
+			switch o.Type {
+			case "":
+				log.Println("no type")
+				continue
+			default:
+				out[o.Line] = &o
+			}
 		}
 	}
 
@@ -136,16 +137,18 @@ func parseReceiver(r string) *Receiver {
 }
 
 // inspectNode checks what is determined to be the value of a node based on a type-assertion.
-func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
-	obj := Object{}
+// returns multiple in the case of grouped types (const, var, type, etc)
+func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
+	out := []Object{}
 	ast.Inspect(node, func(n ast.Node) bool {
-		obj.Line = fset.File(node.Pos()).Line(node.Pos())
+		line := fset.File(node.Pos()).Line(node.Pos())
 		switch x := n.(type) {
 		case *ast.FuncDecl:
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
 			var name string
+			var obj Object
 			if index > -1 {
 				sig = body[:index-1]
 			} else {
@@ -164,10 +167,14 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			index = strings.Index(name, "(")
 			name = strings.TrimSpace(name[:index])
 			obj.Name = &name
+			out = append(out, obj)
 		case *ast.ChanType:
+			var obj Object
 			obj.Signature = getSignature(bs, node)
 			obj.Type = "ChanType"
+			out = append(out, obj)
 		case *ast.DeclStmt:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -178,7 +185,9 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Type = "DeclStmt"
+			out = append(out, obj)
 		case *ast.FuncLit:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -189,7 +198,9 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Type = "FuncLit"
+			out = append(out, obj)
 		case *ast.FuncType:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "{\n")
 			var sig string
@@ -200,20 +211,32 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			}
 			obj.Signature = strings.TrimSuffix(sig, "\n")
 			obj.Type = "FuncType"
+			out = append(out, obj)
 		case *ast.StructType:
+			var obj Object
 			body := getbody(bs, node)
 			index := strings.Index(body, "struct")
 			obj.Signature = strings.TrimSuffix(body[:index+6], "\n")
 			obj.Type = "StructType"
+			out = append(out, obj)
 		case *ast.TypeSpec:
-			obj.Signature = getSignature(bs, node)
+			var obj Object
+			obj.Signature = strings.TrimSpace(getSignature(bs, node))
 			obj.Type = "TypeSpec"
+			out = append(out, obj)
 		case *ast.GenDecl:
+			var obj Object
 			if strings.Contains(string(bs[node.Pos()-1:node.End()]), "import") {
 				break
 			}
+
 			body := getbody(bs, node)
-			idx := strings.Index(body, "{\n")
+			idx := strings.Index(body, "=")
+			// if no equal in "var x = ___" check for other endings
+			if idx == -1 {
+				idx = strings.Index(body, "{\n")
+			}
+
 			if idx == -1 {
 				// special case for inline structs
 				idx = strings.Index(body, "{")
@@ -224,29 +247,42 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) Object {
 			} else {
 				sig = body
 			}
-			obj.Signature = sig
+			if strings.HasSuffix(sig[:len(sig)-2], "(\\n\\t") {
+				log.Println("GROUPED!")
+			}
+
+			fmt.Println(sig)
+			obj.Signature = strings.TrimSpace(sig)
 			obj.Type = "GenDecl"
 
 			idx = strings.Index(sig, " ")
-			log.Println(idx)
 			pfx := sig[:idx]
-			log.Println(pfx)
 			switch pfx {
 			case "type", "var", "const":
 				start := strings.TrimSpace(sig[idx:])
-				log.Printf("%s start\n", start)
 				endIdx := strings.Index(start, " ")
 				if endIdx == -1 { // no idea how
-					log.Printf("%s has no ending space\n", start)
-					return false
+					// happens when grouped
+					// log.Printf("%s has no ending space\n", start)
+					// name := strings.TrimPrefix(start, `const (\n\t`)
+					// out = append(out, Object{
+					// 	Name:      &name,
+					// 	Type:      "GenDecl",
+					// 	Signature: "bla",
+					// 	Line:      line,
+					// })
+					break
 				}
-				name := start[:endIdx]
+				name := strings.TrimSpace(start[:endIdx])
 				obj.Name = &name
+				obj.Line = line
+
 			}
+			out = append(out, obj)
 		default:
-			// log.Println(string(bs[x.Pos()-1 : x.End()]))
+			log.Println(string(bs[x.Pos()-1 : x.End()]))
 		}
 		return false
 	})
-	return obj
+	return out
 }

@@ -52,3 +52,18 @@ func init() {
 func somefunc() {
 
 }
+
+const (
+	x = 1
+	y = 2
+)
+
+var (
+	a = "a var"
+	b = "b var"
+)
+
+const (
+	g = iota + 1
+	o
+)
