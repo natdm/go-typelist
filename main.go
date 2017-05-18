@@ -233,76 +233,53 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 			}
 
 			body := getbody(bs, node)
-			idx := strings.Index(body, "=")
-			// if no equal in "var x = ___" check for other endings
-			if idx == -1 {
-				idx = strings.Index(body, "{\n")
-			}
 
-			if idx == -1 {
-				// special case for inline structs
-				idx = strings.Index(body, "{")
-			}
-			var sig string
-			if idx > -1 {
-				sig = body[:idx]
+			brIdx := strings.Index(body, "\n")
+			eqIdx := strings.Index(body, "=")
+			if eqIdx == -1 {
+				// is a type alias
+				spaceSplit := strings.Split(body, " ")
+
+				// signature =
+				out = append(out, Object{
+					Name:      &spaceSplit[1],
+					Type:      "GenDecl",
+					Line:      line,
+					Signature: fmt.Sprintf("%s %s", spaceSplit[0], spaceSplit[1]),
+				})
+				return false
+			} else if brIdx > eqIdx {
+				// is a var x = __
+				spaceSplit := strings.Split(body[:eqIdx], " ")
+
+				// signature =
+				out = append(out, Object{
+					Name:      &spaceSplit[1],
+					Type:      "GenDecl",
+					Line:      line,
+					Signature: fmt.Sprintf("%s %s", spaceSplit[0], spaceSplit[1]),
+				})
+				return false
 			} else {
-				sig = body
-			}
-			log.Println(sig)
-			// sigSplit := strings.Split(sig, " ")
-			idx = strings.Index(sig, " ")
-			pfx := sig[:idx]
+				// is a "const ()" entry
+				// find if var, or const, or type
+				declType := strings.Split(body, " ")[0]
 
-			// if len(sigSplit) == 3 {
-			// 	_name := strings.TrimSpace(sigSplit[1])
-			// 	// end early if it's a simple "var x = whatever"
-			// 	out = append(out, Object{
-			// 		Signature: strings.TrimSpace(sig),
-			// 		Line:      line,
-			// 		Name:      &_name,
-			// 		Type:      "GenDecl",
-			// 	})
-			// 	return false
-			// }
-
-			switch pfx {
-			case "type", "var", "const":
-				start := strings.TrimSpace(sig[idx:])
-				endIdx := strings.Index(start, " ")
-				if endIdx == -1 {
-					// happens when grouped
-					base := string(bs[x.Pos()-1 : x.End()])
-					split := strings.Split(base, "\n")
-					for i, v := range split {
-						if i == 0 || i > len(split)-3 {
-							// skip the first 'const (' line followed by the )
-							continue
-						}
-						if v == "" {
-							// skip any gaps
-							continue
-						}
-						newObj := Object{}
-						_name := strings.TrimSpace(v)
-						if eqidx := strings.Index(_name, "="); eqidx > -1 {
-							_name = strings.TrimSpace(_name[:eqidx])
-						}
-						newObj.Signature = fmt.Sprintf("%s %s", pfx, _name)
-						newObj.Name = &_name
-						newObj.Line = line + i
-						newObj.Type = "GenDecl"
-						out = append(out, newObj)
+				_ = declType // erase soon
+				split := strings.Split(body, "\n")
+				for i, v := range split {
+					if i == 0 || v == "" || v == "(" || v == ")" {
+						continue
 					}
-					return true
+					name := strings.TrimSpace(strings.Split(v, "=")[0])
+					out = append(out, Object{
+						Line:      line + i,
+						Name:      &name,
+						Type:      "GenDecl",
+						Signature: fmt.Sprintf("%s %s", declType, name),
+					})
 				}
-				var obj Object
-				obj.Signature = strings.TrimSpace(sig)
-				obj.Type = "GenDecl"
-				name := strings.TrimSpace(start[:endIdx])
-				obj.Name = &name
-				obj.Line = line
-				out = append(out, obj)
+				return false
 			}
 		default:
 			// log.Println(string(bs[x.Pos()-1 : x.End()]))
