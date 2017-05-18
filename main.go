@@ -249,9 +249,23 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 			} else {
 				sig = body
 			}
-
+			log.Println(sig)
+			// sigSplit := strings.Split(sig, " ")
 			idx = strings.Index(sig, " ")
 			pfx := sig[:idx]
+
+			// if len(sigSplit) == 3 {
+			// 	_name := strings.TrimSpace(sigSplit[1])
+			// 	// end early if it's a simple "var x = whatever"
+			// 	out = append(out, Object{
+			// 		Signature: strings.TrimSpace(sig),
+			// 		Line:      line,
+			// 		Name:      &_name,
+			// 		Type:      "GenDecl",
+			// 	})
+			// 	return false
+			// }
+
 			switch pfx {
 			case "type", "var", "const":
 				start := strings.TrimSpace(sig[idx:])
