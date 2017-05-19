@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -46,21 +47,31 @@ type ObjectsVersion struct {
 const version = "0.0.1"
 
 func main() {
-	if len(os.Args) < 1 {
-		log.Println("Nothing to do")
-		os.Exit(0)
+	flag.Usage = usage
+	flag.Parse()
+
+	if len(os.Args) < 2 || !strings.HasSuffix(os.Args[1], ".go") {
+		log.Fatalln("Need a Go file")
 	}
 
+	out, err := parse(os.Args[1])
+	if err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Fprint(os.Stdout, out)
+}
+
+func parse(f string) (string, error) {
 	// map the line number to the object
 	out := map[int]*Object{}
 	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, os.Args[1], nil, parser.AllErrors)
+	file, err := parser.ParseFile(fset, f, nil, parser.AllErrors)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	bs, err := ioutil.ReadFile(os.Args[1])
+	bs, err := ioutil.ReadFile(f)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	// get all signatures, types, and lines and add them to the map
@@ -106,9 +117,9 @@ func main() {
 	objV := ObjectsVersion{Version: version, Objects: objArr}
 	outBs, err := json.MarshalIndent(objV, "", "\t")
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	fmt.Fprint(os.Stdout, string(norm.NFC.Bytes(outBs)))
+	return string(norm.NFC.Bytes(outBs)), nil
 }
 
 func getbody(bs []byte, node ast.Node) string {
