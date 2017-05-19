@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -46,8 +47,11 @@ type ObjectsVersion struct {
 const version = "0.0.1"
 
 func main() {
-	if len(os.Args) < 1 {
-		log.Println("Nothing to do")
+	flag.Usage = usage
+	flag.Parse()
+
+	if len(os.Args) < 2 || !strings.HasSuffix(os.Args[1], ".go") {
+		log.Println("Need a Go file")
 		os.Exit(0)
 	}
 
