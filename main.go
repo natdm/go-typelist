@@ -10,9 +10,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strings"
-
-	"golang.org/x/text/unicode/norm"
 )
 
 // Object represents a Go type
@@ -42,6 +41,13 @@ func (r *Receiver) String() string {
 type ObjectsVersion struct {
 	Version string   `json:"version"`
 	Objects []Object `json:"objects"`
+}
+
+// Len is part of sort.Interface.
+func (o *ObjectsVersion) Sort() {
+	sort.Slice(o.Objects, func(i, j int) bool {
+		return o.Objects[i].Line < o.Objects[j].Line
+	})
 }
 
 const version = "0.0.1"
@@ -115,11 +121,12 @@ func parse(f string) (string, error) {
 		objArr = append(objArr, *v)
 	}
 	objV := ObjectsVersion{Version: version, Objects: objArr}
-	outBs, err := json.MarshalIndent(objV, "", "\t")
+	objV.Sort()
+	outBs, err := json.MarshalIndent(objV, "", "    ")
 	if err != nil {
 		return "", err
 	}
-	return string(norm.NFC.Bytes(outBs)), nil
+	return string(outBs), nil
 }
 
 func getbody(bs []byte, node ast.Node) string {
@@ -250,14 +257,22 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 			eqIdx := strings.Index(body, "=")
 			if eqIdx == -1 {
 				// is a type alias
+
 				spaceSplit := strings.Split(body, " ")
+
+				var sig string
+				if strings.Contains(spaceSplit[2], "func") {
+					sig = strings.TrimSuffix(body, "\n")
+				} else {
+					sig = fmt.Sprintf("%s %s %s", spaceSplit[0], spaceSplit[1], strings.TrimSuffix(spaceSplit[2], "\n"))
+				}
 
 				// signature =
 				out = append(out, Object{
 					Name:      &spaceSplit[1],
 					Type:      "GenDecl",
 					Line:      line,
-					Signature: fmt.Sprintf("%s %s", spaceSplit[0], spaceSplit[1]),
+					Signature: sig,
 				})
 				return false
 			} else if brIdx > eqIdx {
