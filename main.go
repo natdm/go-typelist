@@ -43,7 +43,7 @@ type ObjectsVersion struct {
 	Objects []Object `json:"objects"`
 }
 
-// Len is part of sort.Interface.
+// Sort ...
 func (o *ObjectsVersion) Sort() {
 	sort.Slice(o.Objects, func(i, j int) bool {
 		return o.Objects[i].Line < o.Objects[j].Line
@@ -53,8 +53,14 @@ func (o *ObjectsVersion) Sort() {
 const version = "0.0.2"
 
 func main() {
+	flagVersion := flag.Bool("v", false, "Print version")
 	flag.Usage = usage
 	flag.Parse()
+
+	if *flagVersion {
+		fmt.Fprintln(os.Stdout, version)
+		os.Exit(0)
+	}
 
 	if len(os.Args) < 2 || !strings.HasSuffix(os.Args[1], ".go") {
 		log.Fatalln("Need a Go file")
