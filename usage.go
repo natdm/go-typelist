@@ -9,6 +9,7 @@ func usage() {
 	Visit http://www.github.com/natdm/go-typelist for more detailed example useage.
 
     Usage:
+		go-typelist -v (yields version)
         go-typelist file/path/gofile.go
 
 `)

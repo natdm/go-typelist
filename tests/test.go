@@ -15,8 +15,18 @@ type FuncType func(foo int, bar string) error
 // InterfaceType should be a GenDecl
 type InterfaceType interface{}
 
+type InterfaceWithMethods interface {
+	Read([]byte) (int, error)
+	Write([]byte) (int, error)
+}
+
 // StructType should be a GenDecl
 type StructType struct{}
+
+// StructWithFields should be a GenDecl
+type StructWithFields struct {
+	Name int `json:"name"`
+}
 
 var Variable = "TestVar"
 
@@ -80,3 +90,7 @@ var things = []interface{}{
 var aFunction = func(x string) error {
 	return nil
 }
+
+type myMap map[string]StructWithFields
+
+var myMapVar = map[string]StructWithFields{}
