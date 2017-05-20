@@ -15,6 +15,10 @@ type FuncType func(foo int, bar string) error
 // InterfaceType should be a GenDecl
 type InterfaceType interface{}
 
+type nopCloser struct{}
+
+func (nopCloser) Close() error { return nil }
+
 type InterfaceWithMethods interface {
 	Read([]byte) (int, error)
 	Write([]byte) (int, error)
@@ -75,9 +79,14 @@ const (
 	h
 	e
 	r
+	// comment
+	//
+	//
+	// another comment
+	//
 
 	v = 5
-	f = "asdf"
+	f = "asdf" //asdf
 )
 
 var things = []interface{}{
@@ -91,6 +100,6 @@ var aFunction = func(x string) error {
 	return nil
 }
 
-type myMap map[string]StructWithFields
+type myMap map[string]StructWithFields // test
 
 var myMapVar = map[string]StructWithFields{}

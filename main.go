@@ -135,14 +135,17 @@ func parse(f string) (string, error) {
 	return string(outBs), nil
 }
 
+// gets the body of an AST node
 func getbody(bs []byte, node ast.Node) string {
 	return string(bs[node.Pos()-1 : node.End()])
 }
 
+// gets a node signature
 func getSignature(bs []byte, node ast.Node) string {
 	return strings.TrimSuffix(getbody(bs, node), "\n")
 }
 
+// parses a method receiver
 func parseReceiver(r string) *Receiver {
 	ptr := strings.Index(r, "*")
 	a := strings.TrimPrefix(r, "(")
