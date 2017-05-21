@@ -150,6 +150,18 @@ func parseReceiver(r string) *Receiver {
 	ptr := strings.Index(r, "*")
 	a := strings.TrimPrefix(r, "(")
 	aSep := strings.Index(a, " ")
+	if aSep == -1 {
+		// has no alias. eg: func(typ) Close()
+		name := strings.TrimSuffix(a, ")")
+		if ptr > -1 {
+			name = strings.TrimPrefix(name, "*")
+		}
+		return &Receiver{
+			Pointer:  ptr > -1,
+			TypeName: name,
+			Alias:    "",
+		}
+	}
 	ptrB := false
 	var typName string
 	if ptr == -1 { // not a pointer
@@ -174,12 +186,12 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 		switch x := n.(type) {
 		case *ast.FuncDecl:
 			body := getbody(bs, node)
-			index := strings.Index(body, "{\n")
+			bodyStartBkt := strings.Index(body, "{")
 			var sig string
 			var name string
 			var obj Object
-			if index > -1 {
-				sig = body[:index-1]
+			if bodyStartBkt > -1 {
+				sig = body[:bodyStartBkt-1]
 			} else {
 				sig = body
 			}
@@ -193,7 +205,7 @@ func inspectNode(node ast.Node, bs []byte, fset *token.FileSet) []Object {
 				obj.Receiver = parseReceiver(rcv)
 				name = strings.TrimPrefix(sig, "func"+" "+rcv)
 			}
-			index = strings.Index(name, "(")
+			index := strings.Index(name, "(")
 			// further trim name down
 			name = strings.TrimSpace(name[:index])
 			obj.Name = &name

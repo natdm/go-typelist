@@ -19,6 +19,8 @@ type nopCloser struct{}
 
 func (nopCloser) Close() error { return nil }
 
+func (*nopCloser) ClosePtr() error { return nil }
+
 type InterfaceWithMethods interface {
 	Read([]byte) (int, error)
 	Write([]byte) (int, error)
@@ -51,6 +53,10 @@ func (s *StructType) MethodDeclPR(foo int, bar string) error {
 // MethodDecl should show up as a MethodDecl
 func (s StructType) MethodDecl(foo int, bar string) error {
 	return nil
+}
+
+func (s StructType) MultiReturn() (string, error) {
+	return "", nil
 }
 
 // init is not being parsed..
