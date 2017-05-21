@@ -38,48 +38,77 @@
         },
         {
             "line": 18,
+            "signature": "type nopCloser struct{}",
+            "type": "GenDecl",
+            "name": "nopCloser",
+            "receiver": null
+        },
+        {
+            "line": 20,
+            "signature": "func (nopCloser) Close() error",
+            "type": "MethodDecl",
+            "name": "Close",
+            "receiver": {
+                "type_name": "nopCloser",
+                "pointer": false,
+                "alias": ""
+            }
+        },
+        {
+            "line": 22,
+            "signature": "func (*nopCloser) ClosePtr() error",
+            "type": "MethodDecl",
+            "name": "ClosePtr",
+            "receiver": {
+                "type_name": "nopCloser",
+                "pointer": true,
+                "alias": ""
+            }
+        },
+        {
+            "line": 24,
             "signature": "type InterfaceWithMethods interface",
             "type": "GenDecl",
             "name": "InterfaceWithMethods",
             "receiver": null
         },
         {
-            "line": 24,
+            "line": 30,
             "signature": "type StructType struct{}",
             "type": "GenDecl",
             "name": "StructType",
             "receiver": null
         },
         {
-            "line": 27,
+            "line": 33,
             "signature": "type StructWithFields struct",
             "type": "GenDecl",
             "name": "StructWithFields",
             "receiver": null
         },
         {
-            "line": 31,
+            "line": 37,
             "signature": "var Variable",
             "type": "GenDecl",
             "name": "Variable",
             "receiver": null
         },
         {
-            "line": 35,
+            "line": 41,
             "signature": "const ConstType",
             "type": "GenDecl",
             "name": "ConstType",
             "receiver": null
         },
         {
-            "line": 38,
+            "line": 44,
             "signature": "func Standalonefunc(foo int, bar string) error",
             "type": "FuncDecl",
             "name": "Standalonefunc",
             "receiver": null
         },
         {
-            "line": 43,
+            "line": 49,
             "signature": "func (s *StructType) MethodDeclPR(foo int, bar string) error",
             "type": "MethodDecl",
             "name": "MethodDeclPR",
@@ -90,7 +119,7 @@
             }
         },
         {
-            "line": 48,
+            "line": 54,
             "signature": "func (s StructType) MethodDecl(foo int, bar string) error",
             "type": "MethodDecl",
             "name": "MethodDecl",
@@ -101,126 +130,137 @@
             }
         },
         {
-            "line": 53,
+            "line": 58,
+            "signature": "func (s StructType) MultiReturn() (string, error)",
+            "type": "MethodDecl",
+            "name": "MultiReturn",
+            "receiver": {
+                "type_name": "StructType",
+                "pointer": false,
+                "alias": "s"
+            }
+        },
+        {
+            "line": 63,
             "signature": "func init()",
             "type": "FuncDecl",
             "name": "init",
             "receiver": null
         },
         {
-            "line": 57,
+            "line": 67,
             "signature": "func somefunc()",
             "type": "FuncDecl",
             "name": "somefunc",
             "receiver": null
         },
         {
-            "line": 62,
+            "line": 72,
             "signature": "const x",
             "type": "GenDecl",
             "name": "x",
             "receiver": null
         },
         {
-            "line": 63,
+            "line": 73,
             "signature": "const y",
             "type": "GenDecl",
             "name": "y",
             "receiver": null
         },
         {
-            "line": 67,
+            "line": 77,
             "signature": "var a",
             "type": "GenDecl",
             "name": "a",
             "receiver": null
         },
         {
-            "line": 68,
+            "line": 78,
             "signature": "var b",
             "type": "GenDecl",
             "name": "b",
             "receiver": null
         },
         {
-            "line": 72,
+            "line": 82,
             "signature": "const g",
             "type": "GenDecl",
             "name": "g",
             "receiver": null
         },
         {
-            "line": 73,
+            "line": 83,
             "signature": "const o",
             "type": "GenDecl",
             "name": "o",
             "receiver": null
         },
         {
-            "line": 74,
+            "line": 84,
             "signature": "const p",
             "type": "GenDecl",
             "name": "p",
             "receiver": null
         },
         {
-            "line": 75,
+            "line": 85,
             "signature": "const h",
             "type": "GenDecl",
             "name": "h",
             "receiver": null
         },
         {
-            "line": 76,
+            "line": 86,
             "signature": "const e",
             "type": "GenDecl",
             "name": "e",
             "receiver": null
         },
         {
-            "line": 77,
+            "line": 87,
             "signature": "const r",
             "type": "GenDecl",
             "name": "r",
             "receiver": null
         },
         {
-            "line": 79,
+            "line": 94,
             "signature": "const v",
             "type": "GenDecl",
             "name": "v",
             "receiver": null
         },
         {
-            "line": 80,
+            "line": 95,
             "signature": "const f",
             "type": "GenDecl",
             "name": "f",
             "receiver": null
         },
         {
-            "line": 83,
+            "line": 98,
             "signature": "var things",
             "type": "GenDecl",
             "name": "things",
             "receiver": null
         },
         {
-            "line": 90,
+            "line": 105,
             "signature": "var aFunction",
             "type": "GenDecl",
             "name": "aFunction",
             "receiver": null
         },
         {
-            "line": 94,
+            "line": 109,
             "signature": "type myMap map[string]StructWithFields",
             "type": "GenDecl",
             "name": "myMap",
             "receiver": null
         },
         {
-            "line": 96,
+            "line": 111,
             "signature": "var myMapVar",
             "type": "GenDecl",
             "name": "myMapVar",

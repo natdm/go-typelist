@@ -15,6 +15,12 @@ type FuncType func(foo int, bar string) error
 // InterfaceType should be a GenDecl
 type InterfaceType interface{}
 
+type nopCloser struct{}
+
+func (nopCloser) Close() error { return nil }
+
+func (*nopCloser) ClosePtr() error { return nil }
+
 type InterfaceWithMethods interface {
 	Read([]byte) (int, error)
 	Write([]byte) (int, error)
@@ -49,6 +55,10 @@ func (s StructType) MethodDecl(foo int, bar string) error {
 	return nil
 }
 
+func (s StructType) MultiReturn() (string, error) {
+	return "", nil
+}
+
 // init is not being parsed..
 func init() {
 	// init func
@@ -75,9 +85,14 @@ const (
 	h
 	e
 	r
+	// comment
+	//
+	//
+	// another comment
+	//
 
 	v = 5
-	f = "asdf"
+	f = "asdf" //asdf
 )
 
 var things = []interface{}{
@@ -91,6 +106,6 @@ var aFunction = func(x string) error {
 	return nil
 }
 
-type myMap map[string]StructWithFields
+type myMap map[string]StructWithFields // test
 
 var myMapVar = map[string]StructWithFields{}
