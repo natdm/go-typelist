@@ -50,7 +50,7 @@ func (o *ObjectsVersion) Sort() {
 	})
 }
 
-const version = "0.0.2"
+const version = "0.0.3"
 
 func main() {
 	flagVersion := flag.Bool("v", false, "Print version")
